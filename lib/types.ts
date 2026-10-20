@@ -2,6 +2,13 @@ export type Num = number | null;
 export type Triple = [Num, Num, Num];
 export type Pair = [Num, Num];
 
+export type M1Desempeno = {
+  mesEnCurso: string; metaFA: Num; pesoFA: Num; pesoSeg: Num;
+  resumen: { mes: string; comercial: string; fa: Num; meta: Num; pctMeta: Num; fuHechos: Num; fuPosibles: Num; pctSeg: Num; indice: Num }[];
+  semanas: { mes: string; label: string; total: Num }[];
+  deals: { cliente: string; comercial: string; estado: string; flags: { label: string; v: number | null }[]; pctMes: Num }[];
+};
+
 export type M1Data = {
   meta: Num; arrActual: Num; pctAvance: Num; brecha: Num; fechaCorte: string | null;
   diasRestantes: Num; semanasRestantes: Num; arrPorSemana: Num;
@@ -9,6 +16,7 @@ export type M1Data = {
   contratoMayorPct: Num; top3Pct: Num; arrVence: Num; arrVencePct: Num;
   pipeline: { deals: Num; arr: Num; cobertura: Num; alertas: Num; fechasRevisar: Num };
   contratosActivos: number;
+  desempeno: M1Desempeno | null;
   grandes: { deal: string; arr: Num; pae: string; cuantos: Num; redondeado: Num }[];
   escenarios: { nombre: string; renov: Num; arrActual: Num; ajuste: Num; arrDeals: Num; arrProyectado: Num; brecha: Num }[];
   deals: { cliente: string; origen: string; rep: string; arr: Num; pae: string; legal: string; fechaCierre: string | null;
@@ -57,15 +65,53 @@ export type M4Data = {
   porArea: { area: string; total: Num; hechos: Num; porEntregar: Num; pct: Num }[];
 };
 
-export type M5Row = { name: string; pubs: Num; vistas: Num; reacciones: Num; comentarios: Num; compartidos: Num; interacciones: Num };
-export type M5Group = { totals: M5Row[]; averages: M5Row[]; leaderTotal: string[]; leaderAvg: string[] };
+export type M5Kind = "pct0" | "pct1" | "int" | "text";
+export type M5PanelRow = {
+  pregunta: string; dato: string; kind: M5Kind; valor: number | string | null; ref: Num; cambio: Num;
+  meta: number | string | null; lectura: string;
+};
+export type M5Period = {
+  inicio: string | null; fin: string | null; pubs: Num; personas: Num; cumplimiento: Num; vistas: Num; alcance: Num; reacciones: Num;
+  comentarios: Num; compartidos: Num; guardados: Num; interacciones: Num; visitasPerfil: Num; seguidores: Num; mensajes: Num; tasa: Num;
+};
+export type M5Persona = {
+  name: string; pubs: Num; semanasConPub: Num; cumplimiento: Num; etiquetan: Num; vistas: Num; vistasPorPub: Num; tasa: Num;
+  seguidores: Num; mensajes: Num;
+};
+export type M5Dim = {
+  titulo: string;
+  items: { name: string; pubs: Num; vistasPorPub: Num; vsVistas: Num; tasa: Num; vsTasa: Num; mensajes: Num; suficiente: string }[];
+  mejorTasa: string; masVistas: string;
+};
+export type M5Top = { n: number; responsable: string; tema: string; formato: string; eje: string; franja: string; vistas: Num; tasa: Num; enlace: string };
+export type M5Canal = {
+  key: string; titulo: string; headers: string[];
+  meses: { mes: string | null; v: Record<string, number | string | null> }[];
+  antes: Record<string, number | string | null> | null;
+};
 export type M5Data = {
-  resumen: { pubs: Num; vistas: Num; reacciones: Num; comentarios: Num; compartidos: Num; interacciones: Num;
-             vistasPorPub: Num; interaccionesPorPub: Num; aTiempo: Num; pendientes: Num; vencidas: Num };
-  meses: (M5Row & { fecha: string | null })[];
-  semanas: (M5Row & { fecha: string | null })[];
-  formato: M5Group;
-  persona: M5Group;
+  panel: M5PanelRow[];
+  control: { pubs: Num; conMetricas: Num; pendientesEquipo: Num; pendientesMarketing: Num; vencidas: Num; aTiempo: number | string | null };
+  totales: M5Period | null;
+  quincenas: M5Period[];
+  semanas: M5Period[];
+  meses: M5Period[];
+  personas: M5Persona[];
+  params: { inicio: string | null; metaCumplimiento: Num; participantes: Num; ultimaSemanaCerrada: string | null; quincenasCerradas: Num; semanasCerradas: Num };
+  analisis: {
+    minimo: Num; tasaPrograma: Num; vistasPrograma: Num;
+    dims: M5Dim[];
+    mejorFranja: { persona: string; franja: string }[];
+    red: { persona: string; seg0: Num; seg1: Num; seg2: Num; seg3: Num; crecimiento: Num; pubs: Num; vistasPorPub: Num; vistasPor100: Num; tasa: Num;
+           vsTasa: Num; seguidoresGanados: Num; mensajes: Num; mejorFranja: string }[];
+    topVistas: M5Top[];
+    topTasa: M5Top[];
+  };
+  canales: {
+    resumen: { canal: string; mes: string | null; mesTexto: string; hechoLabel: string; hechoValor: Num; logroLabel: string; logroValor: Num;
+               cambio: Num; vsAntes: Num }[];
+    detalle: M5Canal[];
+  };
 };
 
 export type UpdateRow = { fecha: string; meta: number; quien: string; avance: string; sigue: string; enlace: string };

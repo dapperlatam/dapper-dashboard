@@ -20,26 +20,58 @@ npm run dev        # abre http://localhost:3000 (modo demo)
 
 ## Conectar los Google Sheets (modo real)
 
-1. En Google Cloud (console.cloud.google.com) crea un proyecto y habilita la **Google Sheets API**.
-2. Crea una **cuenta de servicio** (IAM y administración > Cuentas de servicio) y genera una llave en formato JSON.
-3. Abre cada Google Sheet > Compartir y agrega el correo de la cuenta de servicio (`...@...iam.gserviceaccount.com`) con permiso de **Lector**. Son dos archivos: el de metas y el de la meta 3.
-4. Copia `.env.example` a `.env.local` y llena:
-   - `DATA_MODE=live`
-   - `SHEET_METAS_ID` y `SHEET_M3_ID` (la parte de la URL entre `/d/` y `/edit`).
-   - `GOOGLE_SERVICE_ACCOUNT_JSON`: el contenido completo del JSON, en una sola línea.
-5. Reinicia y abre `/api/health`: debe decir `"mode":"live"` y `true` en las cinco metas. Si algo falla, el campo `errors` dice qué.
+1. En console.cloud.google.com crea un proyecto (o usa uno existente) y habilita la **Google Sheets API** (APIs y servicios > Biblioteca).
+2. IAM y administración > Cuentas de servicio > Crear cuenta de servicio (no necesita roles). Luego, dentro de ella: Claves > Agregar clave > Crear clave nueva > JSON. Se descarga un archivo.
+3. Copia el correo de la cuenta (`client_email` del JSON) y compártelo como **Lector** en los dos Google Sheets (metas y meta 3). Desactiva la notificación por correo.
+4. Verifica que el Sheet de metas tenga la pestaña `Updates de metas` (ver más abajo).
+5. Copia `.env.example` a `.env.local` y llena `DATA_MODE=live`, los dos IDs de Sheet y `GOOGLE_SERVICE_ACCOUNT_JSON` (el JSON completo).
+6. `npm run dev` y abre `/api/health`: debe decir `"mode":"live"` y `true` en las cinco metas. Si algo falla, `errors` explica qué hacer.
+
+Posibles bloqueos en Google Workspace: si el administrador impide crear claves de cuentas de servicio o compartir archivos fuera del dominio, hay que pedirle que lo permita para esta cuenta.
 
 **Nunca subas `.env.local` ni el JSON de la cuenta de servicio a GitHub** (ya están en `.gitignore`).
 
-## Publicarlo (GitHub y Vercel)
+## Subir a GitHub
 
-1. Crea un repositorio **privado** en GitHub y sube esta carpeta.
-2. En vercel.com: Add New > Project > importa el repositorio (Vercel detecta Next.js solo).
-3. En Settings > Environment Variables agrega las mismas variables del paso 4 (para Production y Preview).
-4. Despliega. Abre `/api/health` en la URL de Vercel para confirmar la conexión.
+Crea primero un repositorio **privado y vacío** en GitHub (sin README). Luego, desde la carpeta del proyecto:
 
-Mientras se prueba, el sitio no tiene login: quien tenga el link puede verlo. Antes del uso real conviene
-activar la protección de Vercel (Settings > Deployment Protection) o añadir login con Google restringido al dominio de Dapper.
+```bash
+git init
+git add .
+git status          # revisa que NO aparezcan .env.local ni node_modules
+git commit -m "Dashboard de metas Q4 2026"
+git branch -M main
+git remote add origin https://github.com/TU-ORGANIZACION/dapper-dashboard.git
+git push -u origin main
+```
+
+## Desplegar en Vercel
+
+1. vercel.com > Add New > Project > importa el repositorio. Vercel detecta Next.js solo; no cambies nada del build.
+2. Antes de desplegar, en Environment Variables agrega (Production y Preview):
+
+| Variable | Valor |
+|---|---|
+| `DATA_MODE` | `live` |
+| `SHEET_METAS_ID` | ID del Sheet de metas |
+| `SHEET_M3_ID` | ID del Sheet de la meta 3 |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | el JSON completo de la cuenta de servicio |
+| `TRACKING_START` | `2026-10-19` (primer lunes que cuenta para los puntos de updates) |
+| `BASIC_AUTH_USER` y `BASIC_AUTH_PASSWORD` | usuario y contraseña de acceso (recomendado) |
+
+3. Despliega y abre `https://TU-URL/api/health` para confirmar la conexión.
+4. Cada `git push` a `main` vuelve a desplegar. Los datos se refrescan solos cada 5 minutos, sin necesidad de desplegar.
+
+Con `BASIC_AUTH_USER` y `BASIC_AUTH_PASSWORD` definidos, el navegador pide usuario y contraseña (el celular los recuerda). Sin ellas, el sitio queda abierto a quien tenga el link.
+
+## Pestañas que lee el sitio (no cambiarles el nombre)
+
+| Sheet | Pestañas |
+|---|---|
+| Metas (`SHEET_METAS_ID`) | `M1 Cálculos`, `M1 ARR`, `M2 Cálculos`, `M2 PAE`, `M4 Indicadores`, `M5 Indicadores E`, `M5 Análisis E`, `M5 Canales Marketing E`, `Updates de metas` |
+| Meta 3 (`SHEET_M3_ID`) | `M3 Indicadores` (solo datos agregados; el sitio no lee nombres, correos ni salarios de candidatos) |
+
+El sitio busca cada dato por su **etiqueta** (el texto de la columna A y los encabezados), no por número de fila. Se pueden mover filas dentro de una sección o agregar columnas al final, pero si se renombra un título de sección, una etiqueta o una pestaña, ese dato aparecerá como «—» (o el sitio mostrará un aviso) hasta ajustar el parser en `lib/parse/`. Las pestañas `M5 Contenido` y `M5 Indicadores` anteriores (ocultas) ya no se leen.
 
 ## Updates semanales
 

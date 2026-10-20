@@ -92,3 +92,19 @@ export function tableByHeader(rows: Rows, firstHeader: string): Record<string, C
     return o;
   });
 }
+
+/** Dentro de una sección, localiza la fila de encabezado (primera celda igual a `key`) y devuelve encabezados y filas siguientes. */
+export function tableIn(sec: Section | undefined, key: string): { headers: string[]; rows: Cell[][] } {
+  if (!sec) return { headers: [], rows: [] };
+  const i = sec.rows.findIndex((r) => norm(str(r?.[0])) === norm(key));
+  if (i < 0) return { headers: [], rows: [] };
+  return { headers: (sec.rows[i] ?? []).map(str), rows: sec.rows.slice(i + 1) };
+}
+
+/** Valor para mostrar: número, texto o null si está vacío. */
+export function val(v: Cell): number | string | null {
+  const n = num(v);
+  if (n !== null) return n;
+  const t = str(v);
+  return t === "" ? null : t;
+}

@@ -28,8 +28,8 @@ const tip = {
   cursor: { fill: "var(--surface-3)", opacity: 0.6 },
 };
 
-export function ColumnChart({ data, xKey, series, format = "num", height = 240, stacked = false }: {
-  data: Record<string, string | number | null>[]; xKey: string; series: Series[]; format?: Fmt; height?: number; stacked?: boolean;
+export function ColumnChart({ data, xKey, series, format = "num", height = 240, stacked = false, reference, referenceLabel }: {
+  data: Record<string, string | number | null>[]; xKey: string; series: Series[]; format?: Fmt; height?: number; stacked?: boolean; reference?: number | null; referenceLabel?: string;
 }) {
   return (
     <div style={{ width: "100%", height }}>
@@ -37,8 +37,9 @@ export function ColumnChart({ data, xKey, series, format = "num", height = 240, 
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid stroke="var(--border)" vertical={false} />
           <XAxis dataKey={xKey} tick={tick} tickLine={false} axisLine={{ stroke: "var(--border)" }} interval="preserveStartEnd" />
-          <YAxis tick={tick} tickLine={false} axisLine={false} tickFormatter={(v) => fmt(Number(v), format)} width={62} allowDecimals={format === "dec"} />
+          <YAxis tick={tick} tickLine={false} axisLine={false} tickFormatter={(v) => fmt(Number(v), format)} width={62} allowDecimals={format === "dec" || format === "pct"} />
           <Tooltip {...tip} formatter={(v: number) => fmt(Number(v), format)} />
+          {reference ? <ReferenceLine y={reference} stroke="var(--brass)" strokeDasharray="5 4" strokeWidth={1.5} label={{ value: referenceLabel ?? "Referencia", position: "insideTopRight", fill: "var(--brass)", fontSize: 12 }} /> : null}
           {series.length > 1 ? <Legend wrapperStyle={{ fontSize: 12, color: "var(--ink-soft)" }} /> : null}
           {series.map((s, i) => (
             <Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color ?? PALETTE[i % PALETTE.length]} stackId={stacked ? "a" : undefined} radius={stacked ? 0 : [4, 4, 0, 0]} maxBarSize={44} />
@@ -58,7 +59,7 @@ export function HBarChart({ data, series, format = "num", rowHeight = 34, stacke
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 36, left: 0, bottom: 0 }}>
           <CartesianGrid stroke="var(--border)" horizontal={false} />
-          <XAxis type="number" tick={tick} tickLine={false} axisLine={false} tickFormatter={(v) => fmt(Number(v), format)} allowDecimals={format === "dec"} />
+          <XAxis type="number" tick={tick} tickLine={false} axisLine={false} tickFormatter={(v) => fmt(Number(v), format)} allowDecimals={format === "dec" || format === "pct"} />
           <YAxis type="category" dataKey="name" tick={tick} tickLine={false} axisLine={false} width={labelWidth} />
           <Tooltip {...tip} formatter={(v: number) => fmt(Number(v), format)} />
           {series.length > 1 ? <Legend wrapperStyle={{ fontSize: 12, color: "var(--ink-soft)" }} /> : null}

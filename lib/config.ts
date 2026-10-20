@@ -15,10 +15,15 @@ export const config = {
 export const METAS_RANGES: Record<string, string> = {
   "M1 Cálculos": "A1:H80",
   "M1 ARR": "A1:V104",
+  "M1 Desempeño": "A1:T120",
   "M2 Cálculos": "A1:D45",
   "M2 PAE": "A1:Q44",
   "M4 Indicadores": "A1:E60",
-  "M5 Indicadores": "A1:G100",
+};
+export const M5_RANGES: Record<string, string> = {
+  "M5 Indicadores E": "A1:O90",
+  "M5 Análisis E": "A1:N174",
+  "M5 Canales Marketing E": "A1:J100",
 };
 export const UPDATES_RANGES: Record<string, string> = {
   "Updates de metas": "A1:F500",

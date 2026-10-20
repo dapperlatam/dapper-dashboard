@@ -14,7 +14,7 @@ export const METAS: MetaInfo[] = [
   { id: 4, short: "Deck, data room y manuales", title: "Terminar el deck, el data room y los manuales de procesos", owner: "Pablo Pastrana y Wendy Sánchez", pointsOwner: "Pablo Pastrana",
     rule: "Rojo si hay tareas del deck o data room vencidas, o manuales vencidos. Ámbar si hay tareas bloqueadas o manuales entregados sin implementar. Verde en otro caso. Gris si aún no hay plan cargado." },
   { id: 5, short: "Momentum", title: "Generar momentum para la ronda", owner: "Edinson Loaiza", pointsOwner: "Edinson Loaiza",
-    rule: "Rojo si hay publicaciones o tareas de contenido vencidas. Ámbar si hay publicaciones por hacer. Verde si no hay pendientes. Gris si aún no hay contenido registrado." },
+    rule: "Gris si la campaña aún no tiene publicaciones. Rojo si hay publicaciones vencidas sin publicar. Ámbar si hay métricas pendientes de subir o de registrar, o si el cumplimiento semanal está bajo la meta. Verde en otro caso." },
 ];
 
 export type StatusInfo = { status: Status; label: string; detail: string };
@@ -68,8 +68,10 @@ export function statusFor(id: number, d: DashboardData): StatusInfo {
   }
   const m = d.m5;
   if (!m) return none;
-  if (n0(m.resumen.pubs) === 0 && n0(m.resumen.pendientes) === 0) return { status: "neutral", label: "Sin publicaciones", detail: "Aún no hay contenido registrado" };
-  if (n0(m.resumen.vencidas) > 0) return { status: "bad", label: "Con atrasos", detail: "Hay publicaciones o tareas vencidas" };
-  if (n0(m.resumen.pendientes) > 0) return { status: "warn", label: "Con pendientes", detail: "Hay publicaciones por hacer" };
+  if (n0(m.control.pubs) === 0) return { status: "neutral", label: "Sin publicaciones", detail: "La campaña aún no tiene publicaciones registradas" };
+  if (n0(m.control.vencidas) > 0) return { status: "bad", label: "Con atrasos", detail: "Hay publicaciones vencidas sin publicar" };
+  const cump = m.panel.find((p) => p.pregunta.startsWith("¿Cumple el equipo"));
+  if (n0(m.control.pendientesEquipo) + n0(m.control.pendientesMarketing) > 0 || cump?.lectura === "Bajo meta")
+    return { status: "warn", label: "Con pendientes", detail: "Hay métricas por registrar o cumplimiento bajo la meta" };
   return { status: "ok", label: "Al día", detail: "Sin pendientes" };
 }

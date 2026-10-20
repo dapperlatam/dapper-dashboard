@@ -1,7 +1,58 @@
 import type { M1Data } from "@/lib/types";
 import { dateLabel, dec, int, pct, times, usd, usdFull } from "@/lib/format";
 import { Kpi, ProgressBar, Section, SplitBar, StatusPill, Table, alertStatus } from "@/components/ui";
-import { ScenarioChart } from "@/components/charts/Charts";
+import { ColumnChart, HBarChart, ScenarioChart } from "@/components/charts/Charts";
+
+const cap = (t: string) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
+
+function Desempeno({ d }: { d: NonNullable<M1Data["desempeno"]> }) {
+  const mes = d.resumen.filter((r) => r.mes === d.mesEnCurso);
+  const sum = (f: (r: (typeof mes)[number]) => number | null) => mes.reduce((a, r) => a + (f(r) ?? 0), 0);
+  const faTot = sum((r) => r.fa);
+  const metaTot = sum((r) => r.meta);
+  const fuH = sum((r) => r.fuHechos);
+  const fuP = sum((r) => r.fuPosibles);
+  const conIdx = mes.filter((r) => r.indice !== null);
+  const idxProm = conIdx.length ? conIdx.reduce((a, r) => a + (r.indice ?? 0), 0) / conIdx.length : null;
+  const semanas = d.semanas.filter((w) => w.mes === d.mesEnCurso || (w.total ?? 0) > 0).map((w) => ({ name: `${cap(w.mes).slice(0, 3)} ${w.label.split("·")[0].trim()}`, fa: w.total ?? 0 }));
+  return (
+    <Section title={`Desempeño comercial: ${d.mesEnCurso}`} sub={`Índice conjunto = ${pct(d.pesoFA)} first approach frente a la meta + ${pct(d.pesoSeg)} seguimiento semanal a los deals en negociación.`}>
+      <div className="grid g4 kpis">
+        <Kpi label="First approach del mes" value={`${int(faTot)} / ${int(metaTot)}`} sub={metaTot > 0 ? `${pct(faTot / metaTot)} de la meta del equipo` : "Sin meta definida"} accent />
+        <Kpi label="Seguimiento a deals" value={fuP > 0 ? pct(fuH / fuP) : "—"} sub={`${int(fuH)} de ${int(fuP)} seguimientos posibles`} />
+        <Kpi label="Índice conjunto promedio" value={pct(idxProm)} />
+        <Kpi label="Meta por comercial" value={int(d.metaFA)} sub="first approach en el mes" />
+      </div>
+      <div className="grid g2" style={{ marginTop: 16 }}>
+        <div className="card">
+          <h3>Índice conjunto por comercial</h3>
+          {mes.length ? <HBarChart data={mes.map((r) => ({ name: r.comercial, value: r.indice ?? 0 }))} series={[{ key: "value", name: "Índice" }]} format="pct" labelWidth={110} /> : <p className="empty">Sin datos todavía</p>}
+        </div>
+        <div className="card">
+          <h3>First approach por semana (equipo)</h3>
+          {semanas.some((w) => w.fa > 0) ? <ColumnChart data={semanas} xKey="name" series={[{ key: "fa", name: "First approach", color: "var(--accent)" }]} height={220} /> : <p className="empty">Aún no hay first approach registrados.</p>}
+        </div>
+      </div>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3>Detalle por comercial</h3>
+        <Table
+          head={["Comercial", "First approach", "% de la meta", "Seguimientos", "% seguimiento", "Índice"]}
+          align={["l", "r", "r", "r", "r", "r"]}
+          rows={mes.map((r) => [r.comercial, `${int(r.fa)} / ${int(r.meta)}`, pct(r.pctMeta), `${int(r.fuHechos)} / ${int(r.fuPosibles)}`, pct(r.pctSeg), pct(r.indice)])}
+        />
+      </div>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3>Seguimiento semanal a deals en negociación</h3>
+        <p className="sub">✓ hubo seguimiento esa semana · · sin seguimiento.</p>
+        <Table
+          head={["Deal", "Comercial", ...(d.deals[0]?.flags.map((f) => f.label.split("·")[0].trim()) ?? []), `% ${d.mesEnCurso}`]}
+          align={["l", "l", ...(d.deals[0]?.flags.map(() => "r" as const) ?? []), "r"]}
+          rows={d.deals.map((x) => [x.cliente, x.comercial || <span key="c" className="muted">Sin asignar</span>, ...x.flags.map((f, i) => <span key={i} className={`mx ${f.v === 1 ? "ok" : "open"}`}>{f.v === 1 ? "✓" : "·"}</span>), pct(x.pctMes)])}
+        />
+      </div>
+    </Section>
+  );
+}
 
 export function M1View({ m }: { m: M1Data }) {
   const [fls, org, paeSin, paeCon, paeNo] = m.composicion;
@@ -66,7 +117,7 @@ export function M1View({ m }: { m: M1Data }) {
         </div>
         <div className="card" style={{ marginTop: 16 }}>
           <Table
-            head={["Cliente", "Origen", "ARR", "PAE", "Estado legal", "Cierre estimado", "Último update", "Alerta"]}
+            head={["Cliente", "Origen", "ARR", "PAE", "Estado legal", "Cierre estimado", "Último seguimiento", "Alerta"]}
             min={820}
             align={["l", "l", "r", "l", "l", "l", "l", "l"]}
             rows={m.deals.map((x) => [
@@ -83,6 +134,8 @@ export function M1View({ m }: { m: M1Data }) {
         </div>
         {m.pipeline.fechasRevisar ? <p className="note">Hay {int(m.pipeline.fechasRevisar)} filas con fechas por revisar en el Sheet.</p> : null}
       </Section>
+
+      {m.desempeno ? <Desempeno d={m.desempeno} /> : null}
 
       <Section title="Escenarios" sub="ARR proyectado si se cierran los deals de cada escenario, frente a la meta.">
         {escenarios.length === 0 ? (

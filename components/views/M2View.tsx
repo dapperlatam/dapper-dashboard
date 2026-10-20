@@ -32,7 +32,11 @@ function Compare({ title, sub, la, lb, c, extraNote }: { title: string; sub: str
       <VsRow name="Contratos firmados" a={c.firmados[0]} b={c.firmados[1]} la={la} lb={lb} fmt={int} />
       <VsRow name="ARR total" a={c.arrTotal[0]} b={c.arrTotal[1]} la={la} lb={lb} fmt={usd} />
       <VsRow name="ARR promedio por contrato" a={c.arrProm[0]} b={c.arrProm[1]} la={la} lb={lb} fmt={usd} extra={ratioChip(c.ratio)} />
-      <VsRow name="Tasa de cierre (firmados sobre firmados y perdidos)" a={c.tasaCierre[0]} b={c.tasaCierre[1]} la={la} lb={lb} fmt={(n) => pct(n)} extra={ratioChip(c.tasaRatio)} />
+      {(c.perdidos[0] ?? 0) + (c.perdidos[1] ?? 0) > 0 ? (
+        <VsRow name="Tasa de cierre (firmados sobre firmados y perdidos)" a={c.tasaCierre[0]} b={c.tasaCierre[1]} la={la} lb={lb} fmt={(n) => pct(n)} extra={ratioChip(c.tasaRatio)} />
+      ) : (
+        <div className="vsrow"><div className="name">Tasa de cierre</div><p className="note" style={{ margin: 0 }}>Aún no hay deals perdidos registrados, así que no se puede calcular. Se marcan en la hoja M1 ARR.</p></div>
+      )}
       <VsRow name="Deals en negociación hoy" a={c.negociacion[0]} b={c.negociacion[1]} la={la} lb={lb} fmt={int} />
       {extraNote ? <p className="note">{extraNote}</p> : null}
     </div>

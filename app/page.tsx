@@ -42,10 +42,11 @@ function cardFor(id: number, d: DashboardData): Card {
     };
   }
   if (id === 5 && d.m5) {
-    const m = d.m5.resumen;
+    const m = d.m5;
+    const cump = m.panel.find((p) => p.pregunta.startsWith("¿Cumple el equipo"));
     return {
-      hero: int(m.pubs), heroLabel: "publicaciones hechas", progress: null,
-      stats: [{ v: int(m.vistas), l: "Vistas" }, { v: dec(m.interaccionesPorPub), l: "Interacciones por pub." }, { v: pct(m.aTiempo), l: "A tiempo" }],
+      hero: int(m.control.pubs), heroLabel: "publicaciones de la campaña Voces Dapper", progress: null,
+      stats: [{ v: int(m.totales?.vistas ?? null), l: "Vistas" }, { v: pct(m.totales?.tasa ?? null, 1), l: "Tasa de interacción" }, { v: typeof cump?.valor === "number" ? pct(cump.valor) : "—", l: "Equipo que publicó" }],
     };
   }
   return { hero: "—", heroLabel: "Sin datos", progress: null, stats: [{ v: "—", l: "" }, { v: "—", l: "" }, { v: "—", l: "" }] };

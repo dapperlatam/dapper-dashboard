@@ -35,18 +35,13 @@ export type M2Data = {
            proyectosMes: Num; califPromedio: Num; califUltima: Num; alerta: string; diasContrato: Num }[];
 };
 
-export type M3Pair = { pae: Num; cto: Num };
 export type M3Data = {
-  meta: M3Pair; vinculados: M3Pair; enVinculacion: M3Pair; avance: M3Pair; candidatos: M3Pair;
-  estados: { label: string; pae: Num; cto: Num }[];
-  validacion: { label: string; pae: Num; cto: Num }[];
-  operacion: { reunionesProx7: M3Pair; sinDecision: M3Pair; sinCalificacion: M3Pair; conAlerta: M3Pair };
-  tiempos: { entradaAInicio: M3Pair; activos: M3Pair };
-  embudoPae: { etapa: string; registradas: Num; avanzan: Num; noAvanzan: Num; declinan: Num; pendientes: Num }[];
-  embudoCto: { etapa: string; registradas: Num; avanzan: Num; noAvanzan: Num; declinan: Num; pendientes: Num }[];
-  fuentes: { fuente: string; paeCand: Num; paeVinc: Num; ctoCand: Num; ctoVinc: Num }[];
-  pendientesPorPersona: { persona: string; pae: Num; cto: Num }[];
-  paeAsignados: { vinculados: Num; conEmpresa: Num; sinEmpresa: Num };
+  meta: Num; candidatos: Num; enProceso: Num; descartados: Num; declinaron: Num; aceptaron: Num; avance: number | string | null;
+  embudo: { paso: string; n: Num; etapa: string }[];
+  validacion: { label: string; n: Num }[];
+  pendientes: { label: string; n: Num }[];
+  fuentes: { fuente: string; candidatos: Num; entrevistados: Num; aceptaron: Num }[];
+  completar: { etapa: string; hechas: Num; sinCalificacion: Num; sinComentario: Num; sinDecision: Num }[];
 };
 
 export type M4Data = {

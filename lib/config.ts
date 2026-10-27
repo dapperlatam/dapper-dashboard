@@ -29,5 +29,5 @@ export const UPDATES_RANGES: Record<string, string> = {
   "Updates de metas": "A1:F500",
 };
 export const M3_RANGES: Record<string, string> = {
-  "M3 Indicadores": "A1:F100",
+  "M3 Indicadores PAE": "A1:E100",
 };

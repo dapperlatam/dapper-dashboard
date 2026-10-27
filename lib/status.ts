@@ -10,7 +10,7 @@ export const METAS: MetaInfo[] = [
   { id: 2, short: "PAE y Founder Led", title: "Validar la estrategia comercial: PAE y Founder Led Sales", owner: "Wendy Sánchez", pointsOwner: "Wendy Sánchez",
     rule: "Es una meta de medición, sin cifra objetivo. Ámbar si hay contratos sin dato de PAE o PAE sin calificación reciente; verde si los datos están completos." },
   { id: 3, short: "Contratación", title: "Validar los hirings: más PAE y CTO", owner: "Ingrid Payares", pointsOwner: "Ingrid Payares",
-    rule: "Gris si aún no hay candidatos. Ámbar si hay reuniones realizadas sin decisión o candidatos con alerta. Verde si no hay pendientes." },
+    rule: "Gris si aún no hay candidatos. Ámbar si hay entrevistas o pruebas hechas sin decisión, o campos del histórico por completar. Verde en otro caso." },
   { id: 4, short: "Deck, data room y manuales", title: "Terminar el deck, el data room y los manuales de procesos", owner: "Pablo Pastrana y Wendy Sánchez", pointsOwner: "Pablo Pastrana",
     rule: "Rojo si hay tareas del deck o data room vencidas, o manuales vencidos. Ámbar si hay tareas bloqueadas o manuales entregados sin implementar. Verde en otro caso. Gris si aún no hay plan cargado." },
   { id: 5, short: "Momentum", title: "Generar momentum para la ronda", owner: "Edinson Loaiza", pointsOwner: "Edinson Loaiza",
@@ -50,12 +50,12 @@ export function statusFor(id: number, d: DashboardData): StatusInfo {
   if (id === 3) {
     const m = d.m3;
     if (!m) return none;
-    const total = n0(m.candidatos.pae) + n0(m.candidatos.cto);
-    if (total === 0) return { status: "neutral", label: "Sin candidatos", detail: "Aún no hay candidatos registrados" };
-    const pend = n0(m.operacion.sinDecision.pae) + n0(m.operacion.sinDecision.cto) + n0(m.operacion.conAlerta.pae) + n0(m.operacion.conAlerta.cto);
-    return pend > 0
-      ? { status: "warn", label: "Hay pendientes", detail: "Reuniones sin decisión o candidatos con alerta" }
-      : { status: "ok", label: "Al día", detail: "Sin pendientes de evaluación" };
+    if (n0(m.candidatos) === 0) return { status: "neutral", label: "Sin candidatos", detail: "Aún no hay candidatos registrados" };
+    const blancos = m.completar.reduce((t, c) => t + n0(c.sinCalificacion) + n0(c.sinComentario) + n0(c.sinDecision), 0);
+    const sinDecision = m.pendientes.find((p) => p.label.startsWith("Entrevistas o pruebas hechas"))?.n ?? 0;
+    return blancos + n0(sinDecision) > 0
+      ? { status: "warn", label: "Hay pendientes", detail: "Hay decisiones o campos por completar" }
+      : { status: "ok", label: "Al día", detail: "Sin pendientes" };
   }
   if (id === 4) {
     const m = d.m4;

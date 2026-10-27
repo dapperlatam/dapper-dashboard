@@ -26,15 +26,10 @@ export default async function MetaPage({ params }: { params: { id: string } }) {
       <Banners d={d} />
       <PageHead eyebrow={`Meta ${meta.id}`} title={meta.title}>
         <div className="meta-row">
-          <StatusPill status={st.status} label={st.label} />
           <span className="chip">Encargado: {meta.owner}</span>
           <Updated d={d} />
         </div>
       </PageHead>
-      <details className="rule-box" style={{ marginTop: -8, marginBottom: 18 }}>
-        <summary>¿Cómo se calcula este semáforo?</summary>
-        <p>{meta.rule} Se calcula automáticamente con los indicadores del Sheet: no se registra a mano.</p>
-      </details>
       {d.updates ? <LastUpdate row={d.updates.latest[meta.id]} owner={meta.owner} /> : null}
       {meta.id === 1 && (d.m1 ? <M1View m={d.m1} /> : <p className="empty">No hay datos de la meta 1.</p>)}
       {meta.id === 2 && (d.m2 ? <M2View m={d.m2} /> : <p className="empty">No hay datos de la meta 2.</p>)}

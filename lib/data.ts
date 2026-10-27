@@ -82,7 +82,7 @@ export async function getDashboard(): Promise<DashboardData> {
     errors,
     m1: metas ? safe("Meta 1", () => parseM1(tab(metas, "M1 Cálculos"), tab(metas, "M1 ARR"), tab(metas, "M1 Desempeño"))) : null,
     m2: metas ? safe("Meta 2", () => parseM2(tab(metas, "M2 Cálculos"), tab(metas, "M2 PAE"))) : null,
-    m3: m3 ? safe("Meta 3", () => parseM3(tab(m3, "M3 Indicadores"))) : null,
+    m3: m3 ? safe("Meta 3", () => parseM3(tab(m3, "M3 Indicadores PAE"))) : null,
     m4: metas ? safe("Meta 4", () => parseM4(tab(metas, "M4 Indicadores"))) : null,
     m5: m5src ? safe("Meta 5", () => parseM5(tab(m5src, "M5 Indicadores E"), tab(m5src, "M5 Análisis E"), tab(m5src, "M5 Canales Marketing E"))) : null,
     updates: upd ? safe("Updates de metas", () => summarize(parseUpdates(tab(upd, "Updates de metas")), config.trackingStart)) : null,

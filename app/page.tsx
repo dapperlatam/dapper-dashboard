@@ -27,11 +27,11 @@ function cardFor(id: number, d: DashboardData): Card {
   }
   if (id === 3 && d.m3) {
     const m = d.m3;
-    const vinc = (m.vinculados.pae ?? 0) + (m.vinculados.cto ?? 0);
-    const meta = (m.meta.pae ?? 0) + (m.meta.cto ?? 0);
+    const meta = m.meta ?? 0;
+    const blancos = m.completar.reduce((t, c) => t + (c.sinCalificacion ?? 0) + (c.sinComentario ?? 0) + (c.sinDecision ?? 0), 0);
     return {
-      hero: int(vinc), heroLabel: meta > 0 ? `vinculados de ${meta} previstos (PAE y CTO)` : "vinculados (PAE y CTO), sin meta definida", progress: meta > 0 ? vinc / meta : null,
-      stats: [{ v: int((m.candidatos.pae ?? 0) + (m.candidatos.cto ?? 0)), l: "Candidatos" }, { v: int((m.operacion.reunionesProx7.pae ?? 0) + (m.operacion.reunionesProx7.cto ?? 0)), l: "Reuniones en 7 días" }, { v: int((m.operacion.conAlerta.pae ?? 0) + (m.operacion.conAlerta.cto ?? 0)), l: "Con alerta" }],
+      hero: int(m.aceptaron), heroLabel: meta > 0 ? `aceptaron la propuesta, de ${meta} previstos (PAE)` : "aceptaron la propuesta (PAE), sin meta definida", progress: meta > 0 ? (m.aceptaron ?? 0) / meta : null,
+      stats: [{ v: int(m.candidatos), l: "Candidatos" }, { v: int(m.enProceso), l: "En proceso" }, { v: int(blancos), l: "Campos por completar" }],
     };
   }
   if (id === 4 && d.m4) {

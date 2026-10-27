@@ -1,4 +1,3 @@
-import { METAS } from "@/lib/status";
 import type { UpdateRow, UpdatesSummary } from "@/lib/types";
 import { dateLabel, int } from "@/lib/format";
 import { StatusPill, Table } from "@/components/ui";
@@ -19,12 +18,11 @@ export function UpdatesPanel({ u }: { u: UpdatesSummary }) {
             <span>Cierra el lunes {dateLabel(u.deadline, false)} a la medianoche ({when})</span>
           </div>
           {u.current.map((c) => {
-            const m = METAS.find((x) => x.id === c.meta)!;
             return (
-              <div className="urow" key={c.meta}>
+              <div className="urow" key={c.key}>
                 <div className="who">
-                  <b>Meta {m.id} · {m.short}</b>
-                  <div>{m.owner}</div>
+                  <b>{c.label}</b>
+                  <div>{c.owner}</div>
                 </div>
                 {c.done ? (
                   <StatusPill status="ok" label="Entregado" />
@@ -39,7 +37,7 @@ export function UpdatesPanel({ u }: { u: UpdatesSummary }) {
           <p className="note">
             {pending.length === 0
               ? "Todas las metas tienen su update de la semana."
-              : `Sin update todavía: ${pending.map((c) => `Meta ${c.meta}`).join(", ")}.`}
+              : `Sin update todavía: ${pending.map((c) => `${c.label} (${c.owner.split(" ")[0]})`).join(", ")}.`}
           </p>
         </div>
 
@@ -76,9 +74,9 @@ export function UpdatesPanel({ u }: { u: UpdatesSummary }) {
         <Table
           head={["Meta", ...u.weeks.map((w) => `Lun ${dateLabel(w, false)}`)]}
           align={["l", ...u.weeks.map(() => "r" as const)]}
-          rows={METAS.map((m) => [
-            <span key="n"><b>Meta {m.id}</b> <span className="muted">{m.owner}</span></span>,
-            ...u.weeks.map((w) => <span key={w} className={`mx ${u.matrix[m.id][w]}`}>{SYMBOL[u.matrix[m.id][w]]}</span>),
+          rows={u.current.map((c) => [
+            <span key="n"><b>{c.label}</b> <span className="muted">{c.owner.split(" ")[0]}</span></span>,
+            ...u.weeks.map((w) => <span key={w} className={`mx ${u.matrix[c.key][w]}`}>{SYMBOL[u.matrix[c.key][w]]}</span>),
           ])}
         />
       </div>

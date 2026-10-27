@@ -1,10 +1,11 @@
-import { METAS } from "./status";
+import { UPDATE_TRACKS } from "./status";
 import type { UpdateRow, UpdatesSummary, WeekCell } from "./types";
 
 const DAY = 86400000;
 const BOGOTA_OFFSET_MS = 5 * 3600 * 1000; // Bogotá es UTC-5 y no cambia de hora
 const toMs = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
 const toIso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
 
 export const todayBogota = (now = Date.now()) => toIso(now - BOGOTA_OFFSET_MS);
 
@@ -27,41 +28,38 @@ export function summarize(rows: UpdateRow[], startDeadline: string, now = Date.n
   for (let t = toMs(started ? startDeadline : deadline); t <= toMs(deadline); t += 7 * DAY) weeks.push(toIso(t));
   const shown = weeks.slice(-8);
 
-  // metas con update en cada semana (se ignoran fechas futuras)
-  const done = new Map<string, Set<number>>();
+  // pistas con update en cada semana (se ignoran fechas futuras)
+  const done = new Map<string, Set<string>>();
   const latest: Record<number, UpdateRow | null> = { 1: null, 2: null, 3: null, 4: null, 5: null };
   for (const u of rows) {
     if (u.fecha > today) continue;
     const d = deadlineOf(u.fecha);
     if (!done.has(d)) done.set(d, new Set());
-    done.get(d)!.add(u.meta);
+    for (const t of UPDATE_TRACKS) {
+      if (t.meta === u.meta && (!t.byAuthor || norm(u.quien) === norm(t.owner))) done.get(d)!.add(t.key);
+    }
     if (!latest[u.meta] || u.fecha >= latest[u.meta]!.fecha) latest[u.meta] = u;
   }
 
-  const matrix: Record<number, Record<string, WeekCell>> = {};
+  const matrix: Record<string, Record<string, WeekCell>> = {};
   const pointsBy = new Map<string, number>();
-  METAS.forEach((m) => pointsBy.set(m.pointsOwner, pointsBy.get(m.pointsOwner) ?? 0));
-  for (const m of METAS) {
-    matrix[m.id] = {};
+  UPDATE_TRACKS.forEach((t) => pointsBy.set(t.owner, pointsBy.get(t.owner) ?? 0));
+  for (const t of UPDATE_TRACKS) {
+    matrix[t.key] = {};
     for (const w of shown) {
-      const has = done.get(w)?.has(m.id) ?? false;
-      matrix[m.id][w] = has ? "ok" : w < deadline ? "miss" : "open";
+      const has = done.get(w)?.has(t.key) ?? false;
+      matrix[t.key][w] = has ? "ok" : w < deadline ? "miss" : "open";
     }
     if (started) {
       for (const w of weeks) {
-        if (w < deadline && !(done.get(w)?.has(m.id) ?? false)) pointsBy.set(m.pointsOwner, (pointsBy.get(m.pointsOwner) ?? 0) + 1);
+        if (w < deadline && !(done.get(w)?.has(t.key) ?? false)) pointsBy.set(t.owner, (pointsBy.get(t.owner) ?? 0) + 1);
       }
     }
   }
 
   return {
     today, deadline, daysLeft, startDeadline, started,
-    current: METAS.map((m) => ({
-      meta: m.id,
-      owner: m.owner,
-      done: done.get(deadline)?.has(m.id) ?? false,
-      lastDate: latest[m.id]?.fecha ?? null,
-    })),
+    current: UPDATE_TRACKS.map((t) => ({ key: t.key, label: t.label, owner: t.owner, done: done.get(deadline)?.has(t.key) ?? false })),
     weeks: shown,
     matrix,
     points: [...pointsBy.entries()].map(([owner, points]) => ({ owner, points })).sort((a, b) => b.points - a.points),

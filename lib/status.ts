@@ -17,6 +17,19 @@ export const METAS: MetaInfo[] = [
     rule: "Gris si la campaña aún no tiene publicaciones. Rojo si hay publicaciones vencidas sin publicar. Ámbar si hay métricas pendientes de subir o de registrar, o si el cumplimiento semanal está bajo la meta. Verde en otro caso." },
 ];
 
+export type UpdateTrack = { key: string; meta: number; label: string; owner: string; byAuthor: boolean };
+
+// Cada pista es un update semanal que alguien debe presentar. La Meta 4 se divide en dos: Pablo (deck y data room) y Wendy (manuales);
+// en esas dos, el update cuenta solo si lo reporta esa persona. En las demás, basta con que haya un update de esa meta.
+export const UPDATE_TRACKS: UpdateTrack[] = [
+  { key: "1", meta: 1, label: "Meta 1 · 5M ARR", owner: "Gerardo Vilchis", byAuthor: false },
+  { key: "2", meta: 2, label: "Meta 2 · PAE y Founder Led", owner: "Wendy Sánchez", byAuthor: false },
+  { key: "3", meta: 3, label: "Meta 3 · Contratación", owner: "Ingrid Payares", byAuthor: false },
+  { key: "4a", meta: 4, label: "Meta 4 · Deck y data room", owner: "Pablo Pastrana", byAuthor: true },
+  { key: "4b", meta: 4, label: "Meta 4 · Manuales", owner: "Wendy Sánchez", byAuthor: true },
+  { key: "5", meta: 5, label: "Meta 5 · Momentum", owner: "Edinson Loaiza", byAuthor: false },
+];
+
 export type StatusInfo = { status: Status; label: string; detail: string };
 
 /**

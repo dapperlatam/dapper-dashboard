@@ -117,9 +117,9 @@ export type UpdatesSummary = {
   daysLeft: number;          // 0 = vence hoy
   startDeadline: string;
   started: boolean;
-  current: { meta: number; owner: string; done: boolean; lastDate: string | null }[];
+  current: { key: string; label: string; owner: string; done: boolean }[];
   weeks: string[];           // fechas límite (lunes) visibles, de la más antigua a la actual
-  matrix: Record<number, Record<string, WeekCell>>;
+  matrix: Record<string, Record<string, WeekCell>>;
   points: { owner: string; points: number }[];
   latest: Record<number, UpdateRow | null>;
   total: number;
